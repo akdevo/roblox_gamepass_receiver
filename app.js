@@ -3,11 +3,13 @@ const axios = require("axios");
 const cors = require("cors");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Use Railway's dynamic port or default to 3000
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Endpoint to fetch gamepasses
 app.get("/gamepasses", async (req, res) => {
     const { userId, pageNumber = 1 } = req.query;
 
@@ -40,6 +42,7 @@ app.get("/gamepasses", async (req, res) => {
     }
 });
 
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Proxy server running on http://localhost:${PORT}`);
+    console.log(`Proxy server running on port ${PORT}`);
 });
