@@ -11,13 +11,13 @@ app.use(express.json());
 
 // Endpoint to fetch gamepasses
 app.get("/gamepasses", async (req, res) => {
-    const { userId, pageNumber = 1 } = req.query;
+    const { userId } = req.query;
 
     if (!userId) {
         return res.status(400).json({ error: "Missing userId parameter" });
     }
 
-    const url = `https://www.roblox.com/users/inventory/list-json?assetTypeId=34&cursor=&itemsPerPage=100&pageNumber=${pageNumber}&userId=${userId}`;
+    const url = `https://api.roblox.com/users/${userId}/owned-assets`;
 
     try {
         const response = await axios.get(url, {
@@ -26,22 +26,27 @@ app.get("/gamepasses", async (req, res) => {
             },
         });
 
-        if (response.data && response.data.Data && response.data.Data.Items) {
-            const gamepasses = response.data.Data.Items.map((item) => ({
-                id: item.Item.AssetId,
+        if (response.data && Array.isArray(response.data)) {
+            // Filter gamepasses (AssetType 34 corresponds to Gamepasses)
+            const gamepasses = response.data.filter(item => item.AssetType === 34).map((item) => ({
+                id: item.AssetId,
                 price: item.Product?.PriceInRobux || 0,
+                name: item.Name,
             }));
 
-            return res.json({ gamepasses });
+            if (gamepasses.length > 0) {
+                return res.json({ gamepasses });
+            } else {
+                return res.status(404).json({ error: "No gamepasses found" });
+            }
         } else {
-            return res.status(404).json({ error: "No gamepasses found" });
+            return res.status(404).json({ error: "No assets found" });
         }
     } catch (error) {
         console.error("Error fetching gamepasses:", error.message);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
-
 
 // Start the server
 app.listen(PORT, () => {
