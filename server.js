@@ -42,8 +42,6 @@ app.get("/gamepasses", async (req, res) => {
     }
 });
 
-app.get('/favicon.ico', (req, res) => res.status(204));
-
 
 // Start the server
 app.listen(PORT, () => {
